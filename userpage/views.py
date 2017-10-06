@@ -3,15 +3,21 @@ from codex.baseview import APIView
 
 from wechat.models import User
 
+import requests
 
 class UserBind(APIView):
 
     def validate_user(self):
-        """
-        input: self.input['student_id'] and self.input['password']
-        raise: ValidateError when validating failed
-        """
-        raise NotImplementedError('You should implement UserBind.validate_user method')
+
+        #input: self.input['student_id'] and self.input['password']
+        #raise: ValidateError when validating failed
+        posturl= 'https://id.tsinghua.edu.cn/security_check'
+
+        values = {"username": self.input['student_id'], "password": self.input['password']}
+
+        res = requests.post(posturl, values)
+        if res.url != "https://id.tsinghua.edu.cn/f/account/settings":
+            raise ValidateError(res.url)
 
     def get(self):
         self.check_input('openid')
