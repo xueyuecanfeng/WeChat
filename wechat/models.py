@@ -28,11 +28,16 @@ class Activity(models.Model):
     status = models.IntegerField()
     pic_url = models.CharField(max_length=256)
     remain_tickets = models.IntegerField()
-
     STATUS_DELETED = -1
     STATUS_SAVED = 0
     STATUS_PUBLISHED = 1
 
+    @classmethod
+    def get_by_id(cls, id):
+        try:
+            return cls.objects.get(id=id)
+        except cls.DoesNotExist:
+            raise LogicError('Activity not found')
 
 class Ticket(models.Model):
     student_id = models.CharField(max_length=32, db_index=True)

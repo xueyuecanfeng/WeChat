@@ -3,7 +3,7 @@
   "DEBUG": true,
   "IGNORE_WECHAT_SIGNATURE": false,
   "WECHAT_TOKEN": "0404",
-  "WECHAT_APPID": "wx54a9cb85857",
+  "WECHAT_APPID": "wx54a9cb146cb85857",
   "WECHAT_SECRET": "213fbdf43b7e8b253f894751df14c225",
   "DB_NAME": "wechat_ticket",
   "DB_USER": "root",
