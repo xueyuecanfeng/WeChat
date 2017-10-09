@@ -89,8 +89,6 @@ class WeChatHandler(object):
     def url_bind(self):
         return settings.get_url('u/bind', {'openid': self.user.open_id})
 
-
-
 class WeChatEmptyHandler(WeChatHandler):
 
     def check(self):

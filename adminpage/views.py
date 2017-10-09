@@ -4,7 +4,8 @@ from django.contrib import auth
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from wechat.models import User,Activity
+import uuid
+from wechat.models import User,Activity,Ticket
 from wechat.views import CustomWeChatView
 import os
 import requests
@@ -86,7 +87,7 @@ class ImageUpload(APIView):
         if not self.request.user.is_authenticated():
             raise LogicError('not authenticate')
         self.check_input('image')
-        phototime = self.request.user.username + self.input['image'][0].name
+        phototime = str(uuid.uuid1()) + self.input['image'][0].name
         dest = 'media/' + phototime
         try:
             destination = open('static/'+dest, 'wb+')
@@ -103,6 +104,7 @@ class ActivityDetail(APIView):
             raise LogicError('not authenticate')
         self.check_input('id')
         activity = Activity.objects.get(id = self.input['id'])
+        ticket = Ticket.objects.filter(activity = activity, status = Ticket.STATUS_USED)
         return {
             "name" : activity.name,
             "key" : activity.key,
@@ -115,7 +117,7 @@ class ActivityDetail(APIView):
             "totalTickets" : activity.total_tickets,
             "picUrl" : activity.pic_url,
             "bookedTickets" : activity.total_tickets - activity.remain_tickets,
-            "usedTickets" : activity.total_tickets - activity.remain_tickets,
+            "usedTickets" : len(ticket),
             "currentTime" : timezone.now().timestamp(),
             "status" : activity.status
         }
@@ -165,6 +167,34 @@ class ActivityCheckin(APIView):
     def post(self):
         if not self.request.user.is_authenticated():
             raise LogicError('not authenticate')
-       # self.check_input('actId', 'ticket', 'studentId')
+        try:
+            self.check_input('actId', 'ticket')
+            ticket = Ticket.objects.get(unique_id=self.input['ticket'])
+            if not ticket:
+                raise LogicError('ticket not exist')
+            if ticket.activity.id == self.input['actId']:
+                if ticket.status == Ticket.STATUS_VALID:
+                    ticket.status = Ticket.STATUS_USED
+                    ticket.save()
+                    return {
+                        "ticket" : self.input['ticket'],
+                        "studentId" : ticket.student_id
+                    }
+            raise LogicError('ticket not exist')
+        except:
+            self.check_input('actId', 'studentId')
+            tickets2 = Ticket.objects.filter(student_id= self.input['studentId'])
+            if not tickets2:
+                raise LogicError('ticket no exist')
+            for tic in tickets2:
+                if str(tic.activity.id) == str(self.input['actId']):
+                    if tic.status == Ticket.STATUS_VALID:
+                        tic.status = Ticket.STATUS_USED
+                        tic.save()
+                        return {
+                            "ticket" : tic.unique_id,
+                            "studentId" : self.input['studentId']
+                        }
+            raise LogicError('ticket not exist')
 
 
