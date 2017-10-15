@@ -2,8 +2,7 @@ from codex.baseerror import *
 from codex.baseview import APIView
 
 from wechat.models import User,Activity,Ticket
-
-import requests
+from urllib import parse, request
 from django.utils import timezone
 class UserBind(APIView):
 
@@ -11,13 +10,18 @@ class UserBind(APIView):
 
         #input: self.input['student_id'] and self.input['password']
         #raise: ValidateError when validating failed
-        posturl= 'https://id.tsinghua.edu.cn/security_check'
 
-        values = {"username": self.input['student_id'], "password": self.input['password']}
-
-        res = requests.post(posturl, values)
-        if res.url != "https://id.tsinghua.edu.cn/f/account/settings":
-            raise ValidateError(res.url)
+        try:
+            username = self.input['student_id']
+            password = self.input['password']
+        except:
+            raise ValidateError('msg=1')
+        posturl = 'https://learn.tsinghua.edu.cn/MultiLanguage/lesson/teacher/loginteacher.jsp'
+        login = parse.urlencode({'userid':username, 'userpass':password}).encode('utf-8')
+        req = request.Request(posturl,login)
+        act = str(request.urlopen(req).read())
+        if act.find("loginteacher_action.jsp") < 0:
+            raise ValidateError('msg=')
 
     def get(self):
         self.check_input('openid')
@@ -26,7 +30,7 @@ class UserBind(APIView):
     def post(self):
         self.check_input('openid', 'student_id', 'password')
         user = User.get_by_openid(self.input['openid'])
-        #self.validate_user()
+        self.validate_user()
         user.student_id = self.input['student_id']
         user.save()
 
@@ -34,7 +38,10 @@ class ActivityDetail(APIView):
 
     def get(self):
         self.check_input('id')
-        activity = Activity.objects.get(id = self.input['id'])
+        try:
+             activity = Activity.objects.get(id = self.input['id'])
+        except Activity.DoesNotExist:
+            raise LogicError('activity not exist')
         if activity.status == 1:
             return {
                 "name" : activity.name,
@@ -56,8 +63,9 @@ class ActivityDetail(APIView):
 class TicketDetail(APIView):
     def get(self):
         self.check_input('openid', 'ticket')
-        ticket = Ticket.objects.get(unique_id = self.input['ticket'])
-        if not ticket:
+        try:
+            ticket = Ticket.objects.get(unique_id = self.input['ticket'])
+        except Ticket.DoesNotExist:
             raise LogicError('this ticket not exist')
         return {
             "activityName" : ticket.activity.name,

@@ -1,0 +1,2 @@
+[{"model": "wechat.ticket", "pk":1, "fields":{"student_id":"3", "unique_id":"1", "activity" : 1, "status" : 1}},
+{"model": "wechat.ticket", "pk":2, "fields":{"student_id":"3", "unique_id":"2", "activity" : 4, "status" : 1}}]
