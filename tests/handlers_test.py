@@ -152,5 +152,5 @@ class RemainTest(StaticLiveServerTestCase):
         self.assertIn('目前没有可以抢票的活动', result)
 
     def test_user_get_ticket_success(self):
-        result = send_message(self.live_server_url, get_message_event_click("SERVICE_GET_TICKET", "1"))
+        result = send_message(self.live_server_url, get_message_event_click("SERVICE_GET_TICKET", "3"))
         self.assertIn('目前没有票', result)

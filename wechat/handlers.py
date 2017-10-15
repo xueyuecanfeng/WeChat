@@ -99,6 +99,8 @@ class ActivityBookingHandler(WeChatHandler):
         return False
 
     def handle(cls):
+        if not cls.user.student_id:
+            return cls.reply_text("请先绑定")
         with transaction.atomic():
             try:
                 act = Activity.objects.select_for_update().get(id = cls.myid)
@@ -153,6 +155,8 @@ class TicketsHandler(WeChatHandler):
         return self.is_text_command("抢票","取票","退票")
 
     def handle(cls):
+        if not cls.user.student_id:
+            return cls.reply_text("请先绑定")
         act_key = (cls.input['Content'].split() or [None])[1]
         with transaction.atomic():
             try:
@@ -216,6 +220,8 @@ class BookWhatHandler(WeChatHandler):
         return self.is_event_click(self.view.event_keys['book_what'])
 
     def handle(self):
+        if not self.user.student_id:
+            return self.reply_text("请先绑定")
         activities = Activity.objects.filter(book_end__gte=timezone.now())
         if not activities:
             return self.reply_text('目前没有可以抢票的活动')
@@ -237,6 +243,8 @@ class GetTicketHandler(WeChatHandler):
         return self.is_event_click(self.view.event_keys['get_ticket'])
 
     def handle(self):
+        if not self.user.student_id:
+            return self.reply_text("请先绑定")
         try:
             user = User.objects.get(open_id=self.input['FromUserName'])
         except User.DoesNotExist:
